@@ -1,0 +1,48 @@
+#!/bin/bash
+
+BAT_DIR="/sys/class/power_supply/BAT0"
+TMP_FILE="/tmp/dwmblocks_battery_notification_status"
+
+[[ ! -e $TMP_FILE ]] && echo "1 1" > $TMP_FILE
+
+notification_type=$(cut -d\  -f1 $TMP_FILE)
+notification_status=$(cut -d\  -f2 $TMP_FILE)
+
+function get_bstatus() {
+    local status=$(cat $BAT_DIR/status)
+    local dis_level=("" "" "" "" "" "" "" "" "" "" "")
+    local chr_level=("" "" "" "" "" "" "" "" "" "" "")
+    let "ind = $1/10"
+    
+    case $status in
+	"Discharging")	    
+	    echo "${dis_level[$ind]}"
+	    [[ ( $notification_type -eq 2 ) && ( $notification_status -eq 0 ) ]] && echo "1 1" > $TMP_FILE
+	    ;;
+	"Charging")
+	    echo "${chr_level[$ind]}"
+	    [[ ( $notification_type -eq 1 ) && ( $notification_status -eq 0 ) ]] && echo "2 1" > $TMP_FILE
+	    ;;
+	"Not charging")
+	    echo ""
+	    ;;
+    esac
+    
+}
+
+capacity=$(cat $BAT_DIR/capacity)
+status=$(get_bstatus $capacity)
+
+if [[ ( $capacity -eq 10 ) && ( $notification_type -eq 1 ) && ( $notification_status -eq 1 ) ]]; then
+    setsid herbe "Battery is low!"
+    echo "1 0" > $TMP_FILE
+fi
+
+if [[ ( $capacity -eq 100 ) && ( $notification_type -eq 2 ) && ( $notification_status -eq 1 )]]; then
+    setsid herbe "Battery is full!"
+    echo "2 0" > $TMP_FILE
+fi
+
+echo "$status $(printf "%4s " "$capacity%")"
+
+exit 0

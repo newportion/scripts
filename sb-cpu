@@ -1,0 +1,43 @@
+#!/bin/bash
+
+CPU_DATA="head -1 /proc/stat"
+
+sleepDurationSeconds=$1
+
+prevIdle="$( $CPU_DATA | awk '{print $5}' )"
+prevIowait="$( $CPU_DATA | awk '{print $6}' )"
+
+prevUser="$( $CPU_DATA | awk '{print $2}' )"
+prevNice="$( $CPU_DATA | awk '{print $3}' )"
+prevSystem="$( $CPU_DATA | awk '{print $4}' )"
+prevIrq="$( $CPU_DATA | awk '{print $7}' )"
+prevSoftIrq="$( $CPU_DATA | awk '{print $8}' )"
+prevSteal="$( $CPU_DATA | awk '{print $9}' )"
+
+let "PrevIdle = $prevIdle + $prevIowait"
+let "PrevNonIdle = $prevUser + $prevNice + $prevSystem + $prevIrq + $prevSoftIrq + $prevSteal"
+let "PrevTotal = $PrevIdle + $PrevNonIdle"
+
+sleep $sleepDurationSeconds
+
+idle="$( $CPU_DATA | awk '{print $5}')"
+iowait="$( $CPU_DATA | awk '{print $6}')"
+
+user="$( $CPU_DATA | awk '{print $2}')"
+nice="$( $CPU_DATA | awk '{print $3}')"
+system="$( $CPU_DATA | awk '{print $4}')"
+irq="$( $CPU_DATA | awk '{print $7}' )"
+softIrq="$( $CPU_DATA | awk '{print $8}')"
+steal="$( $CPU_DATA | awk '{print $9}')"
+
+let "Idle = $idle + $iowait"
+let "NonIdle = $user + $nice + $system + $irq + $softIrq + $steal"
+let "Total = $Idle + $NonIdle"
+
+let "totald = $Total - $PrevTotal"
+let "idled = $Idle - $PrevIdle"
+
+CPU_perc=$(awk "BEGIN {print ($totald - $idled)/$totald*100}")
+
+printf "%.2f" $CPU_PERC
+exit

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+volume="$(pamixer --get-volume-human)"
+
+if [ $volume = "muted" ]; then
+    status="婢"
+    volume="0%"
+else
+    status="墳"
+fi
+
+printf "%s %4s " $status $volume
+exit 0

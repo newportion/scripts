@@ -1,0 +1,12 @@
+#!/bin/bash
+
+TMP_FILE="/tmp/dwmblocks_signals"
+
+# send signal to volume script
+if [[ ( -n "$(bluetoothctl info | grep Connected)" ) ]]; then
+    [[ $(cat $TMP_FILE) -eq 1 ]]  && kill -54 $(pidof dwmblocks) &&  echo "0" > $TMP_FILE
+else
+    echo "1" > $TMP_FILE
+fi
+
+exit

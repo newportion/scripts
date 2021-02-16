@@ -1,0 +1,8 @@
+#!/bin/sh
+
+xdpyinfo -ext XINERAMA | sed '/^  head #/!d;s///' |   
+    while IFS=' :x@,' read i w h x y; do
+	if [ $i -eq 1 ]; then
+	    import -window root -crop ${w}x$h+$x+$y /home/newtion/Pictures/screenshots/screenshot-$(date +%F-%T).png
+	fi
+    done
